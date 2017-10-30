@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[VanDevSam]]></title>
+  <link href="http://alwesam.github.io/atom.xml" rel="self"/>
+  <link href="http://alwesam.github.io/"/>
+  <updated>2017-10-30T10:09:39-07:00</updated>
+  <id>http://alwesam.github.io/</id>
+  <author>
+    <name><![CDATA[Wesam Al-Haddad]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[What Am I Intending to Write About on This Blog]]></title>
+    <link href="http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about/"/>
+    <updated>2017-10-28T17:53:50-07:00</updated>
+    <id>http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about</id>
+    <content type="html"><![CDATA[<p>Putting down my scribbles on a blog (or a piece of paper) has been in my
+thoughts for a good while.  Here are some of the subjects I plan to write on:</p>
+
+<ul>
+<li>Software Development</li>
+<li>Ruby (and Rails)</li>
+<li>Vancouver tech scene</li>
+<li>Technology in general</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
