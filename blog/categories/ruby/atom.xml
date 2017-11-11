@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[VanDevSam]]></title>
-  <link href="http://alwesam.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Ruby | VanDevSam]]></title>
+  <link href="http://alwesam.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
   <updated>2017-11-10T17:10:13-08:00</updated>
   <id>http://alwesam.github.io/</id>
@@ -93,51 +93,6 @@ retry. -->
 on job id</li>
 <li>Limit number of pool connections for batch API upload job (go down from
 default of 25 to 5 or even to 1)</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Do Things Better]]></title>
-    <link href="http://alwesam.github.io/blog/2017/11/03/how-to-improve-performance/"/>
-    <updated>2017-11-03T19:36:17-07:00</updated>
-    <id>http://alwesam.github.io/blog/2017/11/03/how-to-improve-performance</id>
-    <content type="html"><![CDATA[<p>When going about an activity, we spend our time in two zones:</p>
-
-<ul>
-<li>Learning Zone</li>
-<li>Performance Zone</li>
-</ul>
-
-
-<p><a href="http://www.youtube.com/watch?feature=player_embedded&v=KaiwGb0csas
-" target="_blank"><img src="http://img.youtube.com/vi/KaiwGb0csas/0.jpg"
-alt="TED presentation" width="440" height="380" border="10" /></a></p>
-
-<p>Practically, most of the time is spent in the performance zone.  When learning
-stops, stagnation follows.</p>
-
-<p>Let&rsquo;s take learning a programming language or a technology stack in general.  We spent few
-weeks or months learning the ropes, but once we undertake a project with a
-deadline, we tend to stick to what we know.  Miskakes are not allowed and even
-in that case, we don&rsquo;t have the time.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[What Am I Intending to Write About on This Blog]]></title>
-    <link href="http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about/"/>
-    <updated>2017-10-28T17:53:50-07:00</updated>
-    <id>http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about</id>
-    <content type="html"><![CDATA[<p>Putting down my scribbles on a blog (or a piece of paper) has been in my
-thoughts for a good while.  Here are some of the subjects I plan to write on:</p>
-
-<ul>
-<li>Software Development</li>
-<li>Ruby (and Rails)</li>
-<li>Vancouver tech scene</li>
-<li>Technology in general</li>
 </ul>
 
 ]]></content>
