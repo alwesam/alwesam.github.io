@@ -88,14 +88,14 @@ automatically transfer funds via EFT between users. The payment process of &hell
 <div class="entry-content"><p>One of the features of the application I have been working on is to
 automatically transfer funds via EFT between users.  The payment process of
 initiating debit/credit transactions involves uploading a file of transactions
-through batch upload API to the payment gateway.  Each line in the file
-constitue a desired transaction.</p>
+through batch payment API to the payment gateway.  Each line in the file
+constitute a transaction.</p>
 
 <p>Since there is a cap on the total dollar amount in each batch API upload,
 several batches are to be uploaded and fired.  Problem is that the payment
 gateway server cannot handle multiple API requests in rapid succession. Assuming
 a batch limit of 50,000 and a total amount of 20 million, that is about 400
-batches that needs to be processed!</p>
+batches that need to be processed!</p>
 
 <h3>Enter Background Job</h3>
 
@@ -105,13 +105,12 @@ and creates a file on the fly (which is written to a tmp/ directory); the file
 is subsequently uploaded through the API request.</p>
 
 <p>Each job constitutes its own thread yet they access the same I/O. More likely
-than not, unless the jobs' execution is throttled, subseuqent job processing
+than not, unless the jobs' execution is throttled, subsequent job processing
 will fail to complete as the server is busy.  Suppose that we want to throttle
 the API request at 1 request/minute; that means 400 minutes or 7 hours required
 to upload all batches for 20 million.  At 1 request/30 seconds, less than 4
 hours is required. Yet, we might do better if we do not manually throttle the
-API request and let it the processor do the job of determing the throttle time
-(more to discuss later)</p>
+API requests and let it the processor determine the throttle (more to discuss later).</p>
 
 <p>Furthermore, each job is accessing the tmp/ directory to write/upload the batch
 file.  To prevent cross-contamination/overwriting, files' name should include with job
@@ -121,23 +120,23 @@ id and the datetime (down to milliseconds).</p>
 rapid loop takes less than 170ms. Writing a single file much less than 1ms. It&rsquo;s
 during the upload that the file risks being overwritten or contaminated if it&rsquo;s
 not uniquely identified with a precise time stamp or (better) a unique
-identifieer</em>.</p>
+identifier</em>.</p>
 
 <p>Another option is to have the batch files created before and sending the files'
 path as arguments to the background jobs.  The main advantages of this approach
 is to minimize the risk of cross-contamination of multiple job threads write
 accessing the tmp/ directory as well as not having to regenerate the file (with
 a different timestamp) every time the job fails. The disadvantage of this
-approach is the the job thread doesn&rsquo;t hold onto the transactions data and it
+approach is the job thread doesn&rsquo;t hold onto the transactions data and it
 has to relay on the tmp directory keeping the file saved while retrying the job
 several times after failure.</p>
 
 <h3>Sidekiq</h3>
 
-<p><a href="https://github.com/mperham/sidekiq">Sidekiq</a> is employed to manage multiple HTTP file uploads in the background.
-It&rsquo;s noted for speed in comparison to Delayed Job (4,500 jobs/second and a
-latency of 10ms). In addition, Sidekiq uses Redis for queing jobs as opposed to
-using the database.</p>
+<p><a href="https://github.com/mperham/sidekiq">Sidekiq</a> is employed to manage multiple
+HTTP file uploads in the background.  It&rsquo;s noted for speed in comparison to
+Delayed Job (4,500 jobs/second and a latency of 10ms). In addition, Sidekiq uses
+Redis for queuing jobs as opposed to using the database.</p>
 
 <h5>To-do list:</h5>
 
