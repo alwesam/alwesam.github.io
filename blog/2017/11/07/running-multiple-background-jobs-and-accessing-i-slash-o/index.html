@@ -240,10 +240,11 @@ gateway.  Of the 160 background jobs, 53 jobs were successfully completed from
 the first attempt (i.e. no retrials were needed).  One job took 6 retries before
 it was successfully completed.  The average number of retrials was 2.31.</p>
 
-<p><img src="../images/retries.png" alt="" /></p>
+<p><img class="center" src="/images/retries.png" width="400" height="350" title="retries" alt="retries bar chart"></p>
 
 <!--
 #notes
+![](../images/retries.png)
 ##Time interval at which jobs successfully completed
 If the Sidekiq process segfaults or crashes the Ruby VM, any jobs that were
 being processed are lost. Sidekiq Pro offers a reliable queueing feature which
