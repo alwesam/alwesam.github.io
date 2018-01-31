@@ -9,8 +9,8 @@
   <meta name="author" content="Wesam Al-Haddad">
 
   
-  <meta name="description" content="One of the features of the application I have been working on is to
-automatically transfer funds via EFT between users. The payment process of &hellip;">
+  <meta name="description" content="(Updated January 30, 2018) One of the features of the application I have been working on is to
+automatically transfer funds via EFT between users. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -88,62 +88,170 @@ automatically transfer funds via EFT between users. The payment process of &hell
   </header>
 
 
-  <div class="entry-content"><p>One of the features of the application I have been working on is to
+  <div class="entry-content"><p>(Updated January 30, 2018)</p>
+
+<p>One of the features of the application I have been working on is to
 automatically transfer funds via EFT between users.  The payment process of
 initiating debit/credit transactions involves uploading a file of transactions
 through batch payment API to the payment gateway.  Each line in the file
 constitute a transaction.</p>
 
-<p>Since there is a cap on the total dollar amount in each batch API upload,
-several batches are to be uploaded and fired.  Problem is that the payment
+<p>Since there is a cap on the total dollar amount in each file upload, multiple
+batches are to be uploaded.  The issue we have to face is that the payment
 gateway server cannot handle multiple API requests in rapid succession. Assuming
-a batch limit of 50,000 and a total amount of 20 million, that is about 400
-batches that need to be processed!</p>
+a batch limit of $50,000 and a total amount of $20 million that needs to be
+processed, that is about 400 batches or API requests!</p>
 
 <h3>Enter Background Job</h3>
+
+<p>It&rsquo;s a good practice to processes API requests (especially those that involve
+payments) through separate background jobs.  The advantages are as follows:</p>
+
+<ul>
+<li>Intensive I/O tasks such as uploading files will be handled separately
+in a worker process.</li>
+<li>Multiple jobs can be run on separate threads concurrently.  While Ruby doesn&rsquo;t
+support CPU multithreading (due to GIL), I/O tasks (such as processing
+API requests or writing to disk) can be processed simultaneously.</li>
+<li>Background jobs can be retried several times until they are successfully
+completed.  The downside part is that we have to ensure that each job is
+idempotent (explained later in the post).</li>
+</ul>
+
 
 <p>When batches are created, each is put through a background job in
 order to complete an API request. Each job takes in an array of transactions
 and creates a file on the fly (which is written to a tmp/ directory); the file
-is subsequently uploaded through the API request.</p>
+is immediately uploaded through the API request.</p>
 
-<p>Each job constitutes its own thread yet they access the same I/O. More likely
-than not, unless the jobs' execution is throttled, subsequent job processing
-will fail to complete as the server is busy.  Suppose that we want to throttle
-the API request at 1 request/minute; that means 400 minutes or 7 hours required
-to upload all batches for 20 million.  At 1 request/30 seconds, less than 4
-hours is required. Yet, we might do better if we do not manually throttle the
-API requests and let it the processor determine the throttle (more to discuss later).</p>
+<h4>A background job is its own world</h4>
+
+<p>Each job constitutes its own thread with its own data and arguments such that it
+can be retried without having to relay on new information.  In the above
+example, the main data is an array of transaction objects that include amount,
+customer code, and whether it&rsquo;s debit or credit.</p>
+
+<p>Yet, all job threads they access the same I/O. More likely than not, unless the
+jobs' execution is throttled, subsequent jobs will fail to complete as the API
+server is busy.  Suppose that we want to throttle the API requests at 1
+request/minute; that means 200 minutes is required to upload all batches.  We
+might do better if we do not manually throttle the API requests and instead use
+the retrial feature to our advantage where let jobs fail and retried at a rate
+determined by the background job processor (see below).</p>
 
 <p>Furthermore, each job is accessing the tmp/ directory to write/upload the batch
-file.  To prevent cross-contamination/overwriting, files' name should include with job
-id and the datetime (down to milliseconds).</p>
+file. To prevent cross-contamination/overwriting, files are uniquely named
+along with a datetime stamp.</p>
 
 <p>  <em>Writing to tmp/ is very quick. Writing 400 batch files of 25 lines each in
-rapid loop takes less than 170ms. Writing a single file much less than 1ms. It&rsquo;s
-during the upload that the file risks being overwritten or contaminated if it&rsquo;s
-not uniquely identified with a precise time stamp or (better) a unique
-identifier</em>.</p>
+rapid loop takes less than 170ms. Writing a single file much less than 1ms.
+It&rsquo;s during the upload that the file risks being overwritten or contaminated if
+it&rsquo;s not uniquely identified with a unique identifier</em>.</p>
 
 <p>Another option is to have the batch files created before and sending the files'
-path as arguments to the background jobs.  The main advantages of this approach
-is to minimize the risk of cross-contamination of multiple job threads write
-accessing the tmp/ directory as well as not having to regenerate the file (with
-a different timestamp) every time the job fails. The disadvantage of this
-approach is the job thread doesn&rsquo;t hold onto the transactions data and it
-has to relay on the tmp directory keeping the file saved while retrying the job
-several times after failure.</p>
+paths as data to the background jobs. The main advantage of this approach is
+to minimize the risk of cross-contamination of multiple job threads while
+accessing the tmp/ directory as well as not having to regenerate the file every
+time the job fails. The disadvantage, however, is that the job doesn&rsquo;t include
+the transactions data and it has to relay on the tmp directory keeping the file
+saved while retrying the job several times after failure.</p>
+
+<h4>Error Handling, Job Completion, and Retries</h4>
+
+<p>To ensure completion, Sidekiq retries failed job up to 25 times after which a
+job is moved to dead jobs queue. An error can be raised by a bug in the code or in the
+example mentioned above an API error. Also, an exception can be raised if the
+job is not complete (batch ID is not returned) forcing a retrial.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class BatchJob
+</span><span class='line'>
+</span><span class='line'>  def perform *args
+</span><span class='line'>     task = UploadFile.new(args).call 
+</span><span class='line'>     unless task.complete?
+</span><span class='line'>      raise "Job Fail"
+</span><span class='line'>     end
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Idempotency</h4>
+
+<p>Idempotency means that a job can be executed multiple safely.  This is
+especially important when it comes to financial transactions. There should not
+be &ldquo;half-completed&rdquo; transactions.  Any database transaction during the job is to
+be rolled back in case of job failure.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class BatchJob
+</span><span class='line'>
+</span><span class='line'>  def perform *args
+</span><span class='line'>    #....
+</span><span class='line'>    ActiveRecord::Base.transaction do
+</span><span class='line'>      # DB transactions goes here
+</span><span class='line'>    end
+</span><span class='line'>    #...
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
 
 <h3>Sidekiq</h3>
 
 <p><a href="https://github.com/mperham/sidekiq">Sidekiq</a> is employed to manage multiple
 HTTP file uploads in the background.  It&rsquo;s noted for speed in comparison to
-Delayed Job (4,500 jobs/second and a latency of 10ms). In addition, Sidekiq uses
-Redis for queuing jobs as opposed to using the database.</p>
+Delayed Job (4,500 jobs/second and a latency of 10ms). Sidekiq uses Redis for
+storing and queuing jobs as opposed to using the database.
+Furthermore, Sidekiq has an error-handling mechanism where it retries a failed
+job with an exponential backoff.</p>
 
-<h5>To-do list:</h5>
+<h4>Retries</h4>
+
+<p>By default, Sidekiq retries a job after it fails up to 25 times.  The timing of
+the retry is governed by this formula:</p>
+
+<p><em>(retry_count**4) + 15 + (rand(30) * (retry_count + 1))</em></p>
+
+<h4>Results</h4>
+
+<p>The code was tested by launching a task to process transactions worth
+$8M.  The transactions were distributed in 160 batches ($50K per batch) and each
+batch was processed through a separate Sidekiq background thread.</p>
+
+<p>It took about 25 minutes to finish uploading all the files to the payment
+gateway.  Of the 160 background jobs, 53 jobs were successfully completed from
+the first attempt (i.e. no retrials were needed).  One job took 6 retries before
+it was successfully completed.  The average number of retrials was 2.31.</p>
+
+<p><img src="../images/retries.png" alt="" /></p>
 
 <!--
+#notes
+##Time interval at which jobs successfully completed
+If the Sidekiq process segfaults or crashes the Ruby VM, any jobs that were
+being processed are lost. Sidekiq Pro offers a reliable queueing feature which
+does not lose those jobs.
+#####To-do list:
 * Default of 25 threads per process (concurrency in ruby is not exactly
 supported)
 * Sidekiq is designed for parallel execution so design your jobs so you can run
@@ -153,16 +261,12 @@ your system architecture is much simpler if you don't have such specialization.
 Set at 20 in production and 5 in development
 * Automatic job retry at (retry_count ** 4)+15+(rand(30)*(retry_count+1)).  For
 example, at the 6th retry will occur between 640 and 820 seconds after the 5th
-retry. -->
-
-
-<ul>
-<li>Custom middleware needed to fetch #job_id and retry_count.</li>
-<li>Also need to customize retry time depending on job so to make them apart based
-on job id</li>
-<li>Limit number of pool connections for batch API upload job (go down from
-default of 25 to 5 or even to 1)</li>
-</ul>
+retry.
+* Custom middleware needed to fetch #job_id and retry_count.
+* Also need to customize retry time depending on job so to make them apart based
+on job id
+* Limit number of pool connections for batch API upload job (go down from
+default of 25 to 5 or even to 1) -->
 
 </div>
   
@@ -321,7 +425,7 @@ thoughts for a good while.  Here are some of the subjects I plan to write on:</p
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Wesam Al-Haddad -
+  Copyright &copy; 2018 - Wesam Al-Haddad -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
