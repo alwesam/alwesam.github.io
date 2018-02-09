@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ruby | VanDevSam]]></title>
   <link href="http://alwesam.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-01-31T10:14:50-08:00</updated>
+  <updated>2018-02-09T14:46:55-08:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -61,7 +61,7 @@ can be retried without having to relay on new information.  In the above
 example, the main data is an array of transaction objects that include amount,
 customer code, and whether it&rsquo;s debit or credit.</p>
 
-<p>Yet, all job threads they access the same I/O. More likely than not, unless the
+<p>Yet, all job threads access the same I/O. More likely than not, unless the
 jobs' execution is throttled, subsequent jobs will fail to complete as the API
 server is busy.  Suppose that we want to throttle the API requests at 1
 request/minute; that means 200 minutes is required to upload all batches.  We

@@ -128,7 +128,7 @@ can be retried without having to relay on new information.  In the above
 example, the main data is an array of transaction objects that include amount,
 customer code, and whether it&rsquo;s debit or credit.</p>
 
-<p>Yet, all job threads they access the same I/O. More likely than not, unless the
+<p>Yet, all job threads access the same I/O. More likely than not, unless the
 jobs' execution is throttled, subsequent jobs will fail to complete as the API
 server is busy.  Suppose that we want to throttle the API requests at 1
 request/minute; that means 200 minutes is required to upload all batches.  We
@@ -304,7 +304,7 @@ default of 25 to 5 or even to 1) -->
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2017/11/03/how-to-improve-performance/" title="Previous Post: How to Do Things Better">&laquo; How to Do Things Better</a>
+        <a class="basic-alignment left" href="/blog/2017/10/28/what-im-intending-to-write-about/" title="Previous Post: What Am I Intending to Write About on this Blog">&laquo; What Am I Intending to Write About on this Blog</a>
       
       
     </p>
@@ -321,10 +321,6 @@ default of 25 to 5 or even to 1) -->
     
       <li class="post">
         <a href="/blog/2017/11/07/running-multiple-background-jobs-and-accessing-i-slash-o/">Running Multiple Background Jobs and Accessing I/O</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/11/03/how-to-improve-performance/">How to Do Things Better</a>
       </li>
     
       <li class="post">

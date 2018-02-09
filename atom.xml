@@ -4,7 +4,7 @@
   <title><![CDATA[VanDevSam]]></title>
   <link href="http://alwesam.github.io/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-01-31T10:14:50-08:00</updated>
+  <updated>2018-02-09T14:46:55-08:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -61,7 +61,7 @@ can be retried without having to relay on new information.  In the above
 example, the main data is an array of transaction objects that include amount,
 customer code, and whether it&rsquo;s debit or credit.</p>
 
-<p>Yet, all job threads they access the same I/O. More likely than not, unless the
+<p>Yet, all job threads access the same I/O. More likely than not, unless the
 jobs' execution is throttled, subsequent jobs will fail to complete as the API
 server is busy.  Suppose that we want to throttle the API requests at 1
 request/minute; that means 200 minutes is required to upload all batches.  We
@@ -199,33 +199,6 @@ on job id
 * Limit number of pool connections for batch API upload job (go down from
 default of 25 to 5 or even to 1) -->
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Do Things Better]]></title>
-    <link href="http://alwesam.github.io/blog/2017/11/03/how-to-improve-performance/"/>
-    <updated>2017-11-03T19:36:17-07:00</updated>
-    <id>http://alwesam.github.io/blog/2017/11/03/how-to-improve-performance</id>
-    <content type="html"><![CDATA[<p>When going about an activity, we spend our time in two zones:</p>
-
-<ul>
-<li>Learning Zone</li>
-<li>Performance Zone</li>
-</ul>
-
-
-<p><a href="http://www.youtube.com/watch?feature=player_embedded&v=KaiwGb0csas
-" target="_blank"><img src="http://img.youtube.com/vi/KaiwGb0csas/0.jpg"
-alt="TED presentation" width="440" height="380" border="10" /></a></p>
-
-<p>Practically, most of the time is spent in the performance zone.  When learning
-stops, stagnation follows.</p>
-
-<p>Let&rsquo;s take learning a programming language or a technology stack in general.  We spent few
-weeks or months learning the ropes, but once we undertake a project with a
-deadline, we tend to stick to what we know.  Miskakes are not allowed and even
-in that case, we don&rsquo;t have the time.</p>
 ]]></content>
   </entry>
   
