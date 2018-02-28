@@ -4,7 +4,7 @@
   <title><![CDATA[VanDevSam]]></title>
   <link href="http://alwesam.github.io/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-02-09T14:46:55-08:00</updated>
+  <updated>2018-02-27T17:11:36-08:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -12,6 +12,476 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Webpacker and React on Rails]]></title>
+    <link href="http://alwesam.github.io/blog/2018/02/26/webpacker-and-react-on-rails/"/>
+    <updated>2018-02-26T15:56:06-08:00</updated>
+    <id>http://alwesam.github.io/blog/2018/02/26/webpacker-and-react-on-rails</id>
+    <content type="html"><![CDATA[<p>I like Ruby and enjoy developing and deploying web applications using Rails.
+Yet, I haven&rsquo;t been a big fan of using Rails view templates to code the client.
+ERB (or even slim) files tend to get messy though developers have evolved
+techniques and practices to write cleaner/simpler html/front-end code.  I&rsquo;m all
+for using JavaScript and using the node ecosystem for any front-end solution.</p>
+
+<p>With the advent of Webpack, it has becoming much easier to integrate JavaScript
+components into Rails without having to go through the Rails assets pipeline.[1]
+Indeed, one can think of the client side as (almost) completely separate module
+from the server side while not having to deploy the client on a separate node
+server.</p>
+
+<h2>Webpacker</h2>
+
+<!-- 
+### What version of Rails work for?  What version of Webpack?
+Ruby 2.2+
+Rails 4.2+
+Node.js 6.0.0+
+Yarn 0.25.2+
+webpack 3.x.x
+ES6 with babel -->
+
+
+<p>The Webpacker <a href="https://github.com/rails/webpacker">gem</a> developed by the Rails
+is enabling the integration of Webpack into Rails without altering the basic
+structure of the Rails app.  It features wepback version 3.x.x and ES6 and it
+uses Yarn for building. Let&rsquo;s see how Webpacker achieves that:</p>
+
+<h3>Directory Structure</h3>
+
+<p>Upon installing the Webpacker gem, the following main items are added to your
+app:</p>
+
+<ul>
+<li>bin
+
+<ul>
+<li><strong> webpack </strong></li>
+<li><strong> webpack-dev-server </strong></li>
+</ul>
+</li>
+<li>config
+
+<ul>
+<li><strong>webpacker.yml</strong></li>
+<li><strong> webpack/ </strong>
+
+<ul>
+<li>environment.js</li>
+<li>development.js</li>
+<li>production.js</li>
+<li>test.js</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>app
+
+<ul>
+<li><strong> javascript/packs </strong></li>
+</ul>
+</li>
+<li><strong> package.json </strong></li>
+</ul>
+
+
+<p>The main thing to look for here is that client code goes under
+<i>app/javascript</i>.  That could include images, css (the folder&rsquo;s name is a
+misnomer as we&rsquo;ll discuss later).</p>
+
+<p>The package.json file for those who are not familiar with Node is similar to
+Ruby&rsquo;s Gemfile in that it specifies the client dependencies. By default, webpack
+is added to the package.json file.  The dependencies are install in the Rails
+app root directory under <i>node_modules</i> folder.</p>
+
+<p>Lastly, webpack&rsquo;s configuration files are added under the config folder
+including a YAML file (discussed in the next section) as well as webpack
+configuration folder (akin to the config/environments folder).  If you open a
+webpack config file, there is not much to see.  That&rsquo;s because, Webpacker has
+taken care of it by loading a default configuration.  A custom configuration can
+be added nonetheless.</p>
+
+<h3>Config/webpacker.yml</h3>
+
+<p>A YAML file that includes basic webpack configurations such as public output
+path (under public/ folder), entry folder (default is app/javascript), and
+development server parameters (host, port, etc).  The file is loaded by
+Webpacker webpack config files.</p>
+
+<h3>Rails view helper method</h3>
+
+<p>Webpacker introduces a new Rails helper method <i>javascript_pack_tag</i>, which
+loads the rails view layout template with the webpack bundled output.  It&rsquo;s
+basically a wrapper of <i>javascript_include_tag</i>, in addition to the
+following:</p>
+
+<ul>
+<li>It checks the public output path for the presence of bundled JavaScript output file.
+If it&rsquo;s not found, a yarn build command is launched to build the client code and
+generate the output file.</li>
+<li>It then leverages <i>javasript_include_tag</i> to insert a <i>script</i> tag
+in the html header.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>app/views/layouts/application.html.erb
+</span><span class='line'>
+</span><span class='line'>&lt;html&gt;
+</span><span class='line'> &lt;head&gt;
+</span><span class='line'>   ---
+</span><span class='line'>   &lt;%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %&gt;
+</span><span class='line'>   &lt;%= stylesheet_pack_tag 'application', 'data-turbolinks-track': 'reload' %&gt;
+</span><span class='line'>   ---
+</span><span class='line'> &lt;head&gt;
+</span><span class='line'> ---
+</span><span class='line'>&lt;html&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>JavaScript Frameworks</h3>
+
+<p>Webpacker provides examples for integrating several JavaScript Frameworks such
+as React, Elm, Vue, and Angular.</p>
+
+<!--
+More detailed:
+-https://webpack.github.io/docs/webpack-dev-server.html#hot-module-replacement
+-https://webpack.github.io/docs/tutorials/getting-started/#watch-mode
+-https://stackoverflow.com/questions/42294827/webpack-vs-webpack-dev-server-vs-webpack-dev-middleware-vs-webpack-hot-middlewar/42354413
+-https://medium.com/@rajaraodv/webpack-the-confusing-parts-58712f8fcad9
+
+##React-Rails
+-->
+
+
+<h2>React_on_Rails</h2>
+
+<p>React_on_Rails is a gem that helps with integrating React components in Rails.
+It is based on Webpacker. It provides helper methods and functions on top.</p>
+
+<!--
+React on Rails is pushed for the following reasons
+- support for server rendering (not used)
+- passing of props from rails view to react (not used)
+
+- redux and router integration support (not used)
+- localization support (not needed)
+- rspec test cases (not used)
+-->
+
+
+<h3>React Component Rendering</h3>
+
+<p>React_on_rails mounts react components from Rails in the view template using
+<i>react_component</i> helper method.  This method takes in the component name
+as an argument in addition to a hash of options (props, id, prerender). It&rsquo;s
+similar to <i>ReactDOM.render</i> method on the client side and it generates a
+div component in the html page that is being served.</p>
+
+<!--
+
+react_component calls internal react_component which creates the JavaScript and
+HMTL to allow rendering the component
+inside internal_react_component create script tag application/json which embeds
+the data props
+Also calls server_rendered_react_component_html if prerender (else returns "")
+then call build_react_component_result_for_server_rendered_string
+
+ result = compose_react_component_html_with_spec_and_console(
+      component_specification_tag, rendered_output, result_console_script
+    )
+
+ prepend_render_rails_context(result)
+
+ Which calls compose_react_component_html_with_spec_and_console and returns this
+ stuff:
+   <<-HTML.html_safe
+    #{component_specification_tag}
+    #{rendered_output}
+    #{console_script}
+    HTML
+
+
+  This is basically the server rendered JS component which is executed by ExecJS
+  or NodeJS compile (mini_racer).  Assuming all react components and no
+  redirect, it basically calls react-dom/server renderToString() function
+  https://reactjs.org/docs/react-dom-server.html
+
+  (function() {
+  var railsContext = #{rails_context(server_side: true).to_json};
+  #{initialize_redux_stores}
+    var props = #{props_string(props).gsub("\u2028", '\u2028').gsub("\u2029", '\u2029')};
+    return ReactOnRails.serverRenderReactComponent({
+      name: '#{react_component_name}',
+      domNodeId: '#{dom_id}',
+      props: props,
+      trace: #{trace},
+      railsContext: railsContext
+    });
+  })()
+
+
+  REMEMBER
+  What’s the difference between client side rendering and server side rendering?
+  Client side rendering — Normally when using React, your browser will download
+  a minimal HTML page, and the content will be filled in by JavaScript.
+
+  With Server side rendering, the initial content is generated on the server, so
+  your browser can download a page with HTML content already in place. Updates to
+  the content are still handled in the browser.
+
+-->
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> //app/views/react_components/index.html.erb
+</span><span class='line'> 
+</span><span class='line'> &lt;%= react_component("ReactComponent_1", props: @react_props) %&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Any react component mounted from rails view has to be registered on the client
+side as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'> import ReactComponent_1 from '../bundles/ReactComponent/components/ReactComponent_1';
+</span><span class='line'> import ReactComponent_2 from '../bundles/ReactComponent/components/ReactComponent_2';
+</span><span class='line'> 
+</span><span class='line'> ReactOnRails.register({
+</span><span class='line'>   ReactComponent_1,
+</span><span class='line'>   ReactComponent_2
+</span><span class='line'> });
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Server rendering</h4>
+
+<p>One of the main features of the <i>react_on_rails</i> gem is that makes it
+easier to enable server rendering.  With the <i>react_component</i> helper
+method we can pass the prerender option and set it to true. Under the hood, the
+helper method access the JavaScript environment (through ExecJS) to call the
+ReactDOM <i>renderToString</i> method, which takes the component and turn it into a
+string to be embedded in the HTML.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> index.html.erb
+</span><span class='line'> 
+</span><span class='line'> &lt;%= react_component("ReactComponent_1", props: @react_props, prerender: true) %&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- 
+client rendering vs server rendering
+https://medium.com/@adamzerner/client-side-rendering-vs-server-side-rendering-a32d2cf3bfcc
+
+To get the best of both worlds
+
+1- Use server rendering to get the first page
+2- Use client rendering for subsequent requests
+
+-->
+
+
+<h3>React_on_Rails JavaScript helper functions</h3>
+
+<!--helper functions (Authenticityhelper, WebpackConfigLoader)
+The only RoR I'm using is the JavaScript API authenticityhelpers for API calls
+-->
+
+
+<p>React_on_Rails provides few JavaScript helper functions. I&rsquo;ll discuss two of
+them here:</p>
+
+<h4>Authenticity Helper function</h4>
+
+<p>React_on_Rails <i>authenticityToken</i> function grabs the csrf-token from the
+html page and can be appended to a header in an API call from a react component
+to the server side. This ensures a verified API (POST/PUT/DELETE) request
+coming from the client.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  authenticityToken() {
+</span><span class='line'>    const token: ?HTMLElement = document.querySelector('meta[name="csrf-token"]');
+</span><span class='line'>    if (token && (token instanceof window.HTMLMetaElement)) {
+</span><span class='line'>      return token.content;
+</span><span class='line'>    }
+</span><span class='line'>    return null;
+</span><span class='line'>  },
+</span><span class='line'>
+</span><span class='line'>  authenticityHeaders(otherHeaders: {[id:string]: string} = {}) {
+</span><span class='line'>    return Object.assign(otherHeaders, {
+</span><span class='line'>      'X-CSRF-Token': this.authenticityToken(),
+</span><span class='line'>      'X-Requested-With': 'XMLHttpRequest',
+</span><span class='line'>    });
+</span><span class='line'>  }
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>WebpackConfigLoader</h4>
+
+<p>If you&rsquo;re not going to use Webpacker&rsquo;s default configurations (provided under
+config/webpack/) and opted to write your own webpack config file, you might find
+it useful to use React_on_Rails webpackConfigLoader function to load
+config/webpacker.yml YAML file.  This is especially important if you&rsquo;re going to
+use Webpacker&rsquo;s binstubs to build the client code (since Webpacker will access
+the same config/webpacker.yml file to determine the public output path and other
+related configs)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const webpackConfigLoader = require('react-on-rails/webpackConfigLoader');
+</span><span class='line'>const configPath          = resolve('..','config'); //path to config/webpacker.yml
+</span><span class='line'>const { output }          = webpackConfigLoader(configPath);
+</span><span class='line'>
+</span><span class='line'>module.exports =
+</span><span class='line'>  output: {
+</span><span class='line'>    publicPath: output.publicPath,
+</span><span class='line'>    path:       output.path
+</span><span class='line'>  }
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!--
+Missing files from client (organization)
+Move config/webpack/*.rb to client/.
+Add yarn integrity check to config/envs files
+
+Conventional webpack way vs rails/webpack way
+config/webpack
+cannot have my node modules in a separate folder called client 
+in this case I have to have my own custom webpacker
+
+If RoR example is not using rails/webpacker convention for webpack config how
+does RoR depends on webpacker (javascript_tag_pack?)
+
+RoR loads values from webpacker.yml file in react_on_rails/webpackConfigLoader.js
+but what else?
+Does it use rails/webpacker other than the above and javascript_pack_tag
+
+Hot-reloading problem.. Still working on it
+--see what's about react-intl
+-->
+
+
+<h3>A Custom Solution</h3>
+
+<p>In our implmentation, we&rsquo;re just using webpacker for the following:</p>
+
+<ul>
+<li>Generate config/webpacker.yml file. The YAML file is accessed by the client
+and server to determine basic configurations such as public output path.</li>
+<li>javascript_pack_tag ruby helper method to link rails view with client.</li>
+</ul>
+
+
+<p>Differences from webpacker way of doing things:</p>
+
+<ul>
+<li>All client related code (and assets) are hosted under the client/ directory</li>
+<li>Custom webpack configuration files are used and hosted under the client/
+directory</li>
+</ul>
+
+
+<!--
+* runs yarn integrity check to ensure packages are up to date
+(config.webpacker.check_yarn_integrity) -- not used (can use directly `yarn check --integrity`)
+The javascript_pack_tag method is what triggers webpack to compile (when loading
+the page) and then serves the bundle js to the client
+-->
+
+
+<p>We&rsquo;re using React on Rails for the following:</p>
+
+<ul>
+<li>JavaScript helper function ReactonRails.AuthenticityHeaders() though a local
+implemenation is already being used</li>
+<li>React on Rails WebpackConfigLoader function to load settings from
+Webpacker&rsquo;s webpacker.yml. Again this feature can be developed locally</li>
+<li>ReactOnRails::TestHelper configuration in RSpec to build client when running RSpec tests.</li>
+</ul>
+
+
+<!--
+### TODO list
+
+* Web-dev-server debug
+ * stylesheets generation (explore solving with styelsheet_pack_tag method)
+
+* Explore startup registration
+* Explore react_component and client registration
+* Explore server rendering and execJS
+
+* Deep-dive into chrome console for speed caching and what not
+* Deep-dive into webpack itself
+
+##web-dev-server debugging
+HMR Ignored an update to unaccepted module
+HMR The following modules couldn't be hot updated: (They would need a full reload!)
+HMR ./screens/dashboard/LeaseManagement.jsx
+-->
+
+
+<h2>References</h2>
+
+<p>[1] <a href="https://medium.com/@chrismnicola/leaving-sprockets-for-webpack-ccf7c6993ffa">https://medium.com/@chrismnicola/leaving-sprockets-for-webpack-ccf7c6993ffa</a></p>
+
+<p>[2] <a href="https://medium.com/styled-components/the-simple-guide-to-server-side-rendering-react-with-styled-components-d31c6b2b8fbf">https://medium.com/styled-components/the-simple-guide-to-server-side-rendering-react-with-styled-components-d31c6b2b8fbf</a></p>
+
+<p>[3] <a href="https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/javascript_include_tag">https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/javascript_include_tag</a></p>
+
+<p>[4] <a href="https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/stylesheet_link_tag">https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/stylesheet_link_tag</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Multiple Background Jobs and Accessing I/O]]></title>
@@ -198,24 +668,6 @@ retry.
 on job id
 * Limit number of pool connections for batch API upload job (go down from
 default of 25 to 5 or even to 1) -->
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[What Am I Intending to Write About on This Blog]]></title>
-    <link href="http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about/"/>
-    <updated>2017-10-28T17:53:50-07:00</updated>
-    <id>http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about</id>
-    <content type="html"><![CDATA[<p>Putting down my scribbles on a blog (or a piece of paper) has been in my
-thoughts for a good while.  Here are some of the subjects I plan to write on:</p>
-
-<ul>
-<li>Software Development</li>
-<li>Ruby (and Rails)</li>
-<li>Vancouver tech scene</li>
-<li>Technology in general</li>
-</ul>
 
 ]]></content>
   </entry>
