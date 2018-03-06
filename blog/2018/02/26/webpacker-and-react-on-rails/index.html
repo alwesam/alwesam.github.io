@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Webpacker and React on Rails - VanDevSam</title>
+  <title>Integrating React Components in Rails Using Webpacker and React on Rails - VanDevSam</title>
   <meta name="author" content="Wesam Al-Haddad">
 
   
   <meta name="description" content="I like Ruby and enjoy developing and deploying web applications using Rails.
-Yet, I haven&rsquo;t been a big fan of using Rails view templates to &hellip;">
+Yet, I haven&rsquo;t been a big fan of using Rails view templates or &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,7 +69,7 @@ Yet, I haven&rsquo;t been a big fan of using Rails view templates to &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Webpacker and React on Rails</h1>
+      <h1 class="entry-title">Integrating React Components in Rails Using Webpacker and React on Rails</h1>
     
     
       <p class="meta">
@@ -86,13 +86,16 @@ Yet, I haven&rsquo;t been a big fan of using Rails view templates to &hellip;">
 
 
 <div class="entry-content"><p>I like Ruby and enjoy developing and deploying web applications using Rails.
-Yet, I haven&rsquo;t been a big fan of using Rails view templates to code the client.
-ERB (or even slim) files tend to get messy though developers have evolved
-techniques and practices to write cleaner/simpler html/front-end code.  I&rsquo;m all
-for using JavaScript and using the node ecosystem for any front-end solution.</p>
+Yet, I haven&rsquo;t been a big fan of using Rails view templates or Rails many gems
+to code the client.  ERB (or even slim) files tend to get messy though some
+developers have evolved techniques and practices to write cleaner/simpler
+html/frontend code.  On the other hand, I&rsquo;m all for using JavaScript and the
+node ecosystem for any frontend solution. The two components (frontend and
+backend) are separated, developed respectively and are communicating through
+APIs.</p>
 
-<p>With the advent of Webpack, it has becoming much easier to integrate JavaScript
-components into Rails without having to go through the Rails assets pipeline.[1]
+<p>With the advent of Webpack, it has became much easier to integrate JavaScript
+components into Rails without having to go through the Rails assets pipeline [1].
 Indeed, one can think of the client side as (almost) completely separate module
 from the server side while not having to deploy the client on a separate node
 server.</p>
@@ -154,19 +157,19 @@ app:</p>
 
 <p>The main thing to look for here is that client code goes under
 <i>app/javascript</i>.  That could include images, css (the folder&rsquo;s name is a
-misnomer as we&rsquo;ll discuss later).</p>
+misnomer).</p>
 
 <p>The package.json file for those who are not familiar with Node is similar to
 Ruby&rsquo;s Gemfile in that it specifies the client dependencies. By default, webpack
-is added to the package.json file.  The dependencies are install in the Rails
+is added to the package.json file.  The dependencies are installed in the Rails
 app root directory under <i>node_modules</i> folder.</p>
 
-<p>Lastly, webpack&rsquo;s configuration files are added under the config folder
-including a YAML file (discussed in the next section) as well as webpack
-configuration folder (akin to the config/environments folder).  If you open a
-webpack config file, there is not much to see.  That&rsquo;s because, Webpacker has
-taken care of it by loading a default configuration.  A custom configuration can
-be added nonetheless.</p>
+<p>Lastly, webpack&rsquo;s configuration files are added under the <i>config/</i> folder
+including a YAML file (discussed in the next section) as well as a
+<i>webpack/</i> configuration folder (akin to the config/environments folder).
+If you open a webpack config file, there is not much to see.  That&rsquo;s because,
+Webpacker has taken care of it by loading a default configuration.  A custom
+configuration can be added nonetheless.</p>
 
 <h3>Config/webpacker.yml</h3>
 
@@ -347,10 +350,10 @@ side as follows:</p>
 <h4>Server rendering</h4>
 
 <p>One of the main features of the <i>react_on_rails</i> gem is that makes it
-easier to enable server rendering.  With the <i>react_component</i> helper
+easier to enable server rendering [2].  With the <i>react_component</i> helper
 method we can pass the prerender option and set it to true. Under the hood, the
 helper method access the JavaScript environment (through ExecJS) to call the
-ReactDOM <i>renderToString</i> method, which takes the component and turn it into a
+ReactDOM&rsquo;s <i>renderToString</i> method, which takes the component and turn it into a
 string to be embedded in the HTML.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -493,9 +496,13 @@ and server to determine basic configurations such as public output path.</li>
 <p>Differences from webpacker way of doing things:</p>
 
 <ul>
-<li>All client related code (and assets) are hosted under the client/ directory</li>
+<li>All client related code (and assets) are hosted under the <i>client/</i> directory
+
+<ul>
 <li>Custom webpack configuration files are used and hosted under the client/
 directory</li>
+</ul>
+</li>
 </ul>
 
 
@@ -513,8 +520,8 @@ the page) and then serves the bundle js to the client
 <li>JavaScript helper function ReactonRails.AuthenticityHeaders() though a local
 implemenation is already being used</li>
 <li>React on Rails WebpackConfigLoader function to load settings from
-Webpacker&rsquo;s webpacker.yml. Again this feature can be developed locally</li>
-<li>ReactOnRails::TestHelper configuration in RSpec to build client when running RSpec tests.</li>
+Webpacker&rsquo;s webpacker.yml. Again this feature can be developed locally.</li>
+<li>ReactOnRails::TestHelper configuration in RSpec to build client using webpack when running RSpec tests.</li>
 </ul>
 
 
@@ -544,9 +551,11 @@ HMR ./screens/dashboard/LeaseManagement.jsx
 
 <p>[2] <a href="https://medium.com/styled-components/the-simple-guide-to-server-side-rendering-react-with-styled-components-d31c6b2b8fbf">https://medium.com/styled-components/the-simple-guide-to-server-side-rendering-react-with-styled-components-d31c6b2b8fbf</a></p>
 
-<p>[3] <a href="https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/javascript_include_tag">https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/javascript_include_tag</a></p>
+<!--
+[3] https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/javascript_include_tag 
+[4] https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/stylesheet_link_tag
+-->
 
-<p>[4] <a href="https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/stylesheet_link_tag">https://apidock.com/rails/ActionView/Helpers/AssetTagHelper/stylesheet_link_tag</a></p>
 </div>
 
 
@@ -595,7 +604,7 @@ HMR ./screens/dashboard/LeaseManagement.jsx
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2018/02/26/webpacker-and-react-on-rails/">Webpacker and React on Rails</a>
+        <a href="/blog/2018/02/26/webpacker-and-react-on-rails/">Integrating React Components in Rails Using Webpacker and React on Rails</a>
       </li>
     
       <li class="post">
