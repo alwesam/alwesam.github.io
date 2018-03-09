@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ruby | VanDevSam]]></title>
   <link href="http://alwesam.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-03-05T17:32:26-08:00</updated>
+  <updated>2018-03-09T14:27:53-08:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -107,7 +107,7 @@ end
 
 <h4>Idempotency</h4>
 
-<p>Idempotency means that a job can be executed multiple safely.  This is
+<p>Idempotency means that a job can be executed multiple times safely.  This is
 especially important when it comes to financial transactions. There should not
 be &ldquo;half-completed&rdquo; transactions.  Any database transaction during the job is to
 be rolled back in case of job failure.</p>

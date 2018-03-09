@@ -4,7 +4,7 @@
   <title><![CDATA[VanDevSam]]></title>
   <link href="http://alwesam.github.io/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-03-05T17:32:26-08:00</updated>
+  <updated>2018-03-09T14:27:53-08:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -422,22 +422,17 @@ Hot-reloading problem.. Still working on it
 <ul>
 <li>Generate config/webpacker.yml file. The YAML file is accessed by the client
 and server to determine basic configurations such as public output path.</li>
-<li>javascript_pack_tag ruby helper method to link rails view with client.</li>
+<li>javascript_pack_tag ruby helper method to load the webpack-compiled bundled
+file from Rails view.</li>
 </ul>
 
 
-<p>Differences from webpacker way of doing things:</p>
-
-<ul>
-<li>All client related code (and assets) are hosted under the <i>client/</i> directory
-
-<ul>
-<li>Custom webpack configuration files are used and hosted under the client/
-directory</li>
-</ul>
-</li>
-</ul>
-
+<p>In our case, all client related code (and assets) are hosted under the
+<i>client/</i> directory as opposed to the app/javascript directory. Custom
+webpack configuration files are used and hosted under the <i>client/</i>
+directory.  In fact, the creators of React_on_Rails have emphasized this point
+of separating client code and assets in a separate
+<a href="https://github.com/rails/webpacker/issues/130">directory</a>.</p>
 
 <!--
 * runs yarn integrity check to ensure packages are up to date
@@ -475,6 +470,28 @@ Webpacker&rsquo;s webpacker.yml. Again this feature can be developed locally.</l
 HMR Ignored an update to unaccepted module
 HMR The following modules couldn't be hot updated: (They would need a full reload!)
 HMR ./screens/dashboard/LeaseManagement.jsx
+
+##additional notes
+roomia_rails->rails assets:precompile
+cd client && yarn run build:production
+yarn run v1.0.1
+$ rm -rf ../public/webpack && NODE_ENV=production DOMAIN=roomia.com PORT=80 webpack -p --config webpack.build.config.js
+Webpack production build for Rails
+Hash: 6e88dbe8e66c50063089
+Version: webpack 3.8.1
+Time: 34211ms
+
+Notes about speed (webpack vs sprockets)
+Also, what's the initial loading time (b/c it's client heavy)
+
+techniques to improve loading time by customizeing webpack config
+https://hackernoon.com/optimising-your-application-bundle-size-with-webpack-e85b00bab579
+
+Webpack, we're using version 3
+https://medium.com/webpack/webpack-3-official-release-15fd2dd8f07b
+
+look at network tab for loading time measurements
+
 -->
 
 
@@ -596,7 +613,7 @@ job is not complete (batch ID is not returned) forcing a retrial.</p>
 
 <h4>Idempotency</h4>
 
-<p>Idempotency means that a job can be executed multiple safely.  This is
+<p>Idempotency means that a job can be executed multiple times safely.  This is
 especially important when it comes to financial transactions. There should not
 be &ldquo;half-completed&rdquo; transactions.  Any database transaction during the job is to
 be rolled back in case of job failure.</p>

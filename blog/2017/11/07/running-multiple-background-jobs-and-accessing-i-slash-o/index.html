@@ -184,7 +184,7 @@ job is not complete (batch ID is not returned) forcing a retrial.</p>
 
 <h4>Idempotency</h4>
 
-<p>Idempotency means that a job can be executed multiple safely.  This is
+<p>Idempotency means that a job can be executed multiple times safely.  This is
 especially important when it comes to financial transactions. There should not
 be &ldquo;half-completed&rdquo; transactions.  Any database transaction during the job is to
 be rolled back in case of job failure.</p>
