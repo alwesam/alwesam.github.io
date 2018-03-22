@@ -4,7 +4,7 @@
   <title><![CDATA[VanDevSam]]></title>
   <link href="http://alwesam.github.io/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-03-22T10:47:23-07:00</updated>
+  <updated>2018-03-22T16:52:22-07:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -18,7 +18,11 @@
     <link href="http://alwesam.github.io/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/"/>
     <updated>2018-03-21T17:33:45-07:00</updated>
     <id>http://alwesam.github.io/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data</id>
-    <content type="html"><![CDATA[<p>Often and early in development I resort to resetting the database and rebuilding
+    <content type="html"><![CDATA[<p><i>NOTE:  This script doesn&rsquo;t work when introducing structural changes to the
+database such as dropping tables/columns or adding foreign key restriction to a
+newly added table.</i></p>
+
+<p>Often and early in development I resort to resetting the database and rebuilding
 the schema as opposed to performing database migration.  The reason being I want
 to keep a single migration file prior to initial push to production. In early
 development (prior to production), a project is in constant flux and its
@@ -164,6 +168,10 @@ call is wrapped in a def method that are instances of the module.</p>
 </span><span class='line'>  end
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>NOTE: This script doesn&rsquo;t work when introducing structural changes to the
+database such as dropping tables/columns or adding foreign key restriction to a
+newly added table.</p>
 
 <p>This approach works with small to medium databases though I suspect a more
 intelligent approach could be followed by determining the relationships between

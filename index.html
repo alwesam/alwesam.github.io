@@ -9,8 +9,8 @@
   <meta name="author" content="Wesam Al-Haddad">
 
   
-  <meta name="description" content="Often and early in development I resort to resetting the database and rebuilding
-the schema as opposed to performing database migration. The reason &hellip;">
+  <meta name="description" content="NOTE: This script doesn&rsquo;t work when introducing structural changes to the
+database such as dropping tables/columns or adding foreign key &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -88,7 +88,11 @@ the schema as opposed to performing database migration. The reason &hellip;">
   </header>
 
 
-  <div class="entry-content"><p>Often and early in development I resort to resetting the database and rebuilding
+  <div class="entry-content"><p><i>NOTE:  This script doesn&rsquo;t work when introducing structural changes to the
+database such as dropping tables/columns or adding foreign key restriction to a
+newly added table.</i></p>
+
+<p>Often and early in development I resort to resetting the database and rebuilding
 the schema as opposed to performing database migration.  The reason being I want
 to keep a single migration file prior to initial push to production. In early
 development (prior to production), a project is in constant flux and its
@@ -234,6 +238,10 @@ call is wrapped in a def method that are instances of the module.</p>
 </span><span class='line'>  end
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>NOTE: This script doesn&rsquo;t work when introducing structural changes to the
+database such as dropping tables/columns or adding foreign key restriction to a
+newly added table.</p>
 
 <p>This approach works with small to medium databases though I suspect a more
 intelligent approach could be followed by determining the relationships between
