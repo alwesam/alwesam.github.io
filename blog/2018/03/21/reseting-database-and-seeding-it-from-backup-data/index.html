@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Reseting Database and Seeding It From Backup Data - VanDevSam</title>
+  <meta name="author" content="Wesam Al-Haddad">
+
+  
+  <meta name="description" content="Often and early in development I resort to resetting the database and rebuilding
+the schema as opposed to performing database migration. The reason &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alwesam.github.io/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="VanDevSam" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">VanDevSam</a></h1>
+  
+    <h2>Notes on Software and Technology</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alwesam.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Reseting Database and Seeding It From Backup Data</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-03-21T17:33:45-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2018</span></span> <span class='time'>5:33 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Often and early in development I resort to resetting the database and rebuilding
+the schema as opposed to performing database migration.  The reason being I want
+to keep a single migration file prior to initial push to production. In early
+development (prior to production), a project is in constant flux and its
+requirements is frequently changing.  Imagine how many migration files I have to
+put up with before even pushing to production!  That&rsquo;s why I decided to keep a
+single migration file (that is the initial schema) until we push to production
+(or until database stabilizes).</p>
+
+<p>However, I&rsquo;d like to keep the data (or some of it at least) populated in the
+development database.  As we all know, resetting the database means destroying it
+and recreating it again before seeding it from a seed file.</p>
+
+<p>This <a href="https://github.com/rroblak/seed_dump">gem</a> allows to create a seed file
+from the existing data in your database.  However, the order of seeding the
+tables in the output seed file(s) doesn&rsquo;t follow foreign key restrictions (for
+example populating an accounts table before users) resulting in error and
+incomplete repopulation.</p>
+
+<p>The patch I applied to work around this issue is to create a script with a loop
+that goes over data repopulation in each table.  A flag is set to true if the
+table is populated, otherwise move on to populate the next table until all
+tables are populated. The seed file is formatted using a script in that each
+<i>create!</i> is wrapped in a module (e.g LoadBData) and each create method
+call is wrapped in a def method that are instances of the module.</p>
+
+<p>From:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#data_backup.rb
+</span><span class='line'>
+</span><span class='line'>Account.create!([....])
+</span><span class='line'>
+</span><span class='line'>#...
+</span><span class='line'>
+</span><span class='line'>User.create!([....])
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#data_backup.rb
+</span><span class='line'>
+</span><span class='line'>module LoadBData
+</span><span class='line'>
+</span><span class='line'>  def create_account_records
+</span><span class='line'>    Account.create!([....])
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  #...
+</span><span class='line'>
+</span><span class='line'>  def create_user_records
+</span><span class='line'>    User.create!([....])
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now the script to populate the database from the formatted seed file</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  class LoadBackupData
+</span><span class='line'>  
+</span><span class='line'>    file = Rails.root.join('db','seeds','data_backup.rb')
+</span><span class='line'>    if File.exists?(file)
+</span><span class='line'>      load "#{file}"
+</span><span class='line'>      include LoadBData
+</span><span class='line'>    end
+</span><span class='line'>  
+</span><span class='line'>    def initialize
+</span><span class='line'>      @safety_counter = 0
+</span><span class='line'>      @methods_arr    = LoadBData.instance_methods
+</span><span class='line'>      @done_hash      = @methods_arr.map{|meth| [meth, false]}.inject({}) {|r,i| r[i.first] = i.last; r }
+</span><span class='line'>    end
+</span><span class='line'>  
+</span><span class='line'>    def populate
+</span><span class='line'>      loop do
+</span><span class='line'>        @methods_arr.each do |meth|
+</span><span class='line'>          next if @done_hash[meth]
+</span><span class='line'>          begin
+</span><span class='line'>            self.send(meth)
+</span><span class='line'>            @done_hash[meth] = true
+</span><span class='line'>          rescue =&gt; error
+</span><span class='line'>            @safety_counter += 1
+</span><span class='line'>          end
+</span><span class='line'>        end 
+</span><span class='line'>        break if (@done_hash.values.uniq.count == 1 && @done_hash.values.first == true) || @safety_counter == 100
+</span><span class='line'>      end
+</span><span class='line'>      puts "DONE...."
+</span><span class='line'>    end
+</span><span class='line'>  
+</span><span class='line'>  end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This approach works with small to medium databases though I suspect a more
+intelligent approach could be followed by determining the relationships between
+tables and arranging the seed file accordingly.</p>
+
+<p>In any case complexity could
+move towards creating the seed files themselves in such a manner that ensures
+the tables are populated in the right order or applying a patch afterwards as I
+have done here.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wesam Al-Haddad</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2018-03-21T17:33:45-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2018</span></span> <span class='time'>5:33 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alwesam.github.io/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/" data-via="vandevsam" data-counturl="http://alwesam.github.io/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/02/26/webpacker-and-react-on-rails/" title="Previous Post: Integrating React Components in Rails using Webpacker and React on Rails">&laquo; Integrating React Components in Rails using Webpacker and React on Rails</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/">Reseting Database and Seeding It From Backup Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/02/26/webpacker-and-react-on-rails/">Integrating React Components in Rails Using Webpacker and React on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/11/07/running-multiple-background-jobs-and-accessing-i-slash-o/">Running Multiple Background Jobs and Accessing I/O</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub</h1>
+  <!--<ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul> -->
+  
+  <a href="https://github.com/alwesam">@alwesam</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        //github.showRepos({
+        //    user: 'alwesam',
+        //    count: 0,
+        //    skip_forks: true,
+        //    target: '#gh_repos'
+        //});
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Wesam Al-Haddad -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
