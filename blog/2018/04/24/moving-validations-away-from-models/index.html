@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Moving Validations Away From Models - VanDevSam</title>
+  <meta name="author" content="Wesam Al-Haddad">
+
+  
+  <meta name="description" content="I have adopted a design philosophy for building Rails applications that seeks to
+build Rails components using Plain Old Ruby Objects (POROs) [1] &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alwesam.github.io/blog/2018/04/24/moving-validations-away-from-models/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="VanDevSam" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">VanDevSam</a></h1>
+  
+    <h2>Notes on Software</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alwesam.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Moving Validations Away From Models</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-04-24T15:27:35-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>3:27 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I have adopted a design philosophy for building Rails applications that seeks to
+build Rails components using Plain Old Ruby Objects (POROs) [1] guided by the
+Single Responsibility Principle (SRP).  This move entails the following (among
+many other things):</p>
+
+<ul>
+<li>Extracting queries from models and moving them to app/queries/</li>
+<li>Extracting validations from models and moving them app/forms/</li>
+</ul>
+
+
+<p>However, not all validations should be (or can be) extracted from models.  In
+Rails, there are two types of validations:  ActiveModel::Validations and
+ActiveRecord::Validations.  The former checks the validity of the submitted
+fields themselves such as presence, format, etc, while the latter checks the
+validity in relation with other existing records to maintain database integrity
+such as foreign keys, uniqueness. ActiveModel validations can be extracted
+ActiveRecord models.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CustomModelValidations 
+</span><span class='line'>  include ActiveModel::Validations
+</span><span class='line'>
+</span><span class='line'>  attr_accessor :name
+</span><span class='line'>  validates :name, presence: true
+</span><span class='line'>
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However, in certain cases, it might be necessary to perform integrity checks on
+the submitted form prior to saving it.  Let&rsquo;s say a submission request involves
+processing the form data through a background job before it&rsquo;s saved in the
+database.  It would be useful to verify database integrity before launching the
+background process.  In this case, we can employ a custom validation that would
+involve querying the table in question</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class ModelForm
+</span><span class='line'>  include ActiveModel::Validations
+</span><span class='line'>
+</span><span class='line'>  attr_accessor :name
+</span><span class='line'>  validates :name, presence: true
+</span><span class='line'>  validate  :uniqueness_of_name
+</span><span class='line'>
+</span><span class='line'>  private
+</span><span class='line'>
+</span><span class='line'>  def uniqueness_of_name
+</span><span class='line'>    if Model.exists(name: self.name)
+</span><span class='line'>      errors.add(:base, "Name must be unique")
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>References:</h4>
+
+<p>[1] <a href="https://www.toptal.com/ruby-on-rails/decoupling-rails-components">https://www.toptal.com/ruby-on-rails/decoupling-rails-components</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wesam Al-Haddad</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2018-04-24T15:27:35-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>3:27 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alwesam.github.io/blog/2018/04/24/moving-validations-away-from-models/" data-via="vandevsam" data-counturl="http://alwesam.github.io/blog/2018/04/24/moving-validations-away-from-models/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/" title="Previous Post: Reseting database and Seeding it from Backup data">&laquo; Reseting database and Seeding it from Backup data</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/04/24/moving-validations-away-from-models/">Moving Validations Away From Models</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/">Reseting Database and Seeding It From Backup Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/02/26/webpacker-and-react-on-rails/">Integrating React Components in Rails Using Webpacker and React on Rails</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/11/07/running-multiple-background-jobs-and-accessing-i-slash-o/">Running Multiple Background Jobs and Accessing I/O</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub</h1>
+  <!--<ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul> -->
+  
+  <a href="https://github.com/alwesam">@alwesam</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        //github.showRepos({
+        //    user: 'alwesam',
+        //    count: 0,
+        //    skip_forks: true,
+        //    target: '#gh_repos'
+        //});
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Wesam Al-Haddad -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

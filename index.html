@@ -9,8 +9,8 @@
   <meta name="author" content="Wesam Al-Haddad">
 
   
-  <meta name="description" content="NOTE: This script doesn&rsquo;t work when introducing structural changes to the
-database such as dropping tables/columns or adding foreign key &hellip;">
+  <meta name="description" content="I have adopted a design philosophy for building Rails applications that seeks to
+build Rails components using Plain Old Ruby Objects (POROs) [1] &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,114 @@ database such as dropping tables/columns or adding foreign key &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/24/moving-validations-away-from-models/">Moving Validations Away From Models</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-04-24T15:27:35-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>3:27 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I have adopted a design philosophy for building Rails applications that seeks to
+build Rails components using Plain Old Ruby Objects (POROs) [1] guided by the
+Single Responsibility Principle (SRP).  This move entails the following (among
+many other things):</p>
+
+<ul>
+<li>Extracting queries from models and moving them to app/queries/</li>
+<li>Extracting validations from models and moving them app/forms/</li>
+</ul>
+
+
+<p>However, not all validations should be (or can be) extracted from models.  In
+Rails, there are two types of validations:  ActiveModel::Validations and
+ActiveRecord::Validations.  The former checks the validity of the submitted
+fields themselves such as presence, format, etc, while the latter checks the
+validity in relation with other existing records to maintain database integrity
+such as foreign keys, uniqueness. ActiveModel validations can be extracted
+ActiveRecord models.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CustomModelValidations 
+</span><span class='line'>  include ActiveModel::Validations
+</span><span class='line'>
+</span><span class='line'>  attr_accessor :name
+</span><span class='line'>  validates :name, presence: true
+</span><span class='line'>
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However, in certain cases, it might be necessary to perform integrity checks on
+the submitted form prior to saving it.  Let&rsquo;s say a submission request involves
+processing the form data through a background job before it&rsquo;s saved in the
+database.  It would be useful to verify database integrity before launching the
+background process.  In this case, we can employ a custom validation that would
+involve querying the table in question</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class ModelForm
+</span><span class='line'>  include ActiveModel::Validations
+</span><span class='line'>
+</span><span class='line'>  attr_accessor :name
+</span><span class='line'>  validates :name, presence: true
+</span><span class='line'>  validate  :uniqueness_of_name
+</span><span class='line'>
+</span><span class='line'>  private
+</span><span class='line'>
+</span><span class='line'>  def uniqueness_of_name
+</span><span class='line'>    if Model.exists(name: self.name)
+</span><span class='line'>      errors.add(:base, "Name must be unique")
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>References:</h4>
+
+<p>[1] <a href="https://www.toptal.com/ruby-on-rails/decoupling-rails-components">https://www.toptal.com/ruby-on-rails/decoupling-rails-components</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -994,6 +1102,10 @@ default of 25 to 5 or even to 1) -->
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/04/24/moving-validations-away-from-models/">Moving Validations Away From Models</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/">Reseting Database and Seeding It From Backup Data</a>
