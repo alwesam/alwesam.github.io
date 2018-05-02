@@ -4,7 +4,7 @@
   <title><![CDATA[VanDevSam]]></title>
   <link href="http://alwesam.github.io/atom.xml" rel="self"/>
   <link href="http://alwesam.github.io/"/>
-  <updated>2018-04-24T16:07:15-07:00</updated>
+  <updated>2018-05-02T12:57:14-07:00</updated>
   <id>http://alwesam.github.io/</id>
   <author>
     <name><![CDATA[Wesam Al-Haddad]]></name>
@@ -12,6 +12,37 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Lesson of the Day: Cookie Flags]]></title>
+    <link href="http://alwesam.github.io/blog/2018/05/02/lesson-of-the-day-httponly-flag/"/>
+    <updated>2018-05-02T12:35:26-07:00</updated>
+    <id>http://alwesam.github.io/blog/2018/05/02/lesson-of-the-day-httponly-flag</id>
+    <content type="html"><![CDATA[<h3>HttpOnly</h3>
+
+<p>When added to the http request header, HttpOnly flag tells the browser to only
+share its data with the server (through http requests). This prevents potential
+tampering by client-side scripts.</p>
+
+<h3>Secure</h3>
+
+<p>The secure flag forces the browser to only send its cookies through secure http
+line (https). It becomes redundant when https connection is already established
+but could be useful when the security of the client-server connection is
+degraded for whatever reason, in which case no cookies will be shared.</p>
+
+<h3>Domain</h3>
+
+<p>The domain flag ensures the cookies are sent to specific hosts.  It defaults to
+the host portion of the current document (but not including subdomains).</p>
+
+<h3>References</h3>
+
+<p>[1] <a href="https://blog.codinghorror.com/protecting-your-cookies-httponly/">https://blog.codinghorror.com/protecting-your-cookies-httponly/</a></p>
+
+<p>[2] <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Moving Validations Away From Models]]></title>
@@ -954,6 +985,18 @@ on job id
 * Limit number of pool connections for batch API upload job (go down from
 default of 25 to 5 or even to 1) -->
 
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[What Am I Intending to Write About on This Blog]]></title>
+    <link href="http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about/"/>
+    <updated>2017-10-28T17:53:50-07:00</updated>
+    <id>http://alwesam.github.io/blog/2017/10/28/what-im-intending-to-write-about</id>
+    <content type="html"><![CDATA[<p>Putting down scribbles on a blog to reinforce learning everything software.  The
+posts on this blog are not meant to be polished and you might encounter spelling
+and grammatical mistakes as the goal here is to document what I have just
+learned and there are many things to be learned!</p>
 ]]></content>
   </entry>
   

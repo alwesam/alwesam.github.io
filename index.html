@@ -9,8 +9,8 @@
   <meta name="author" content="Wesam Al-Haddad">
 
   
-  <meta name="description" content="I have adopted a design philosophy for building Rails applications that seeks to
-build Rails components using Plain Old Ruby Objects (POROs) [1] &hellip;">
+  <meta name="description" content="HttpOnly When added to the http request header, HttpOnly flag tells the browser to only
+share its data with the server (through http requests). This &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,57 @@ build Rails components using Plain Old Ruby Objects (POROs) [1] &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/05/02/lesson-of-the-day-httponly-flag/">Lesson of the Day: Cookie Flags</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-05-02T12:35:26-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2018</span></span> <span class='time'>12:35 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>HttpOnly</h3>
+
+<p>When added to the http request header, HttpOnly flag tells the browser to only
+share its data with the server (through http requests). This prevents potential
+tampering by client-side scripts.</p>
+
+<h3>Secure</h3>
+
+<p>The secure flag forces the browser to only send its cookies through secure http
+line (https). It becomes redundant when https connection is already established
+but could be useful when the security of the client-server connection is
+degraded for whatever reason, in which case no cookies will be shared.</p>
+
+<h3>Domain</h3>
+
+<p>The domain flag ensures the cookies are sent to specific hosts.  It defaults to
+the host portion of the current document (but not including subdomains).</p>
+
+<h3>References</h3>
+
+<p>[1] <a href="https://blog.codinghorror.com/protecting-your-cookies-httponly/">https://blog.codinghorror.com/protecting-your-cookies-httponly/</a></p>
+
+<p>[2] <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1091,6 +1142,38 @@ default of 25 to 5 or even to 1) -->
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2017/10/28/what-im-intending-to-write-about/">What Am I Intending to Write About on This Blog</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2017-10-28T17:53:50-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>5:53 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Putting down scribbles on a blog to reinforce learning everything software.  The
+posts on this blog are not meant to be polished and you might encounter spelling
+and grammatical mistakes as the goal here is to document what I have just
+learned and there are many things to be learned!</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
@@ -1102,6 +1185,10 @@ default of 25 to 5 or even to 1) -->
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/05/02/lesson-of-the-day-httponly-flag/">Lesson of the Day: Cookie Flags</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2018/04/24/moving-validations-away-from-models/">Moving Validations Away From Models</a>
