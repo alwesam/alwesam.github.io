@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Notes on SQL Queries With Active Record - VanDevSam</title>
+  <meta name="author" content="Wesam Al-Haddad">
+
+  
+  <meta name="description" content="Active Record a convenient interface to do SQL queries. Let&rsquo;s start with a
+simple example 1
+2
+3
+4
+5
+6
+7
+8
+9
+def Property &lt; ActiveRecord &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alwesam.github.io/blog/2018/06/13/sql-queries-with-active-record/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="VanDevSam" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">VanDevSam</a></h1>
+  
+    <h2>Notes on Software</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alwesam.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Notes on SQL Queries With Active Record</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-06-13T13:42:18-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>1:42 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Active Record a convenient interface to do SQL queries. Let&rsquo;s start with a
+simple example</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def Property &lt; ActiveRecord
+</span><span class='line'> #...
+</span><span class='line'> has_many :leases
+</span><span class='line'> #...
+</span><span class='line'>end
+</span><span class='line'>
+</span><span class='line'>##...
+</span><span class='line'>property = Property.find 1
+</span><span class='line'>property.leases</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In SQL that would be:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> SELECT "leases".* FROM "leases" WHERE "leases"."deleted_at" IS NULL AND "leases"."property_id" = $1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s complicate this a bit. Suppose we want to get all tenants (tenancies) of
+all leases of that property.  In SQL that would be</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SELECT "tenancies".* FROM "tenancies" INNER JOIN "leases" ON "tenancies"."lease_id" = "leases"."id" WHERE "tenancies"."deleted_at" IS NULL AND "leases"."deleted_at" IS NULL AND "leases"."property_id" = $1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That looks like a lot of words.  In Rails, we can establish a method in the
+property model to easily achieve the same thing</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def Property &lt; ApplicationRecord
+</span><span class='line'>  has_many :leases
+</span><span class='line'>  has_many :tenancies, through: :leases
+</span><span class='line'>end
+</span><span class='line'>
+</span><span class='line'>##...
+</span><span class='line'>property = Property.find 1
+</span><span class='line'>property.leases
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>Includes, Eager Load, Joins</h5>
+
+<p><em>With includes, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.</em></p>
+
+<p>Includes loads all associations in in two queries using a left outer join</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Property.includes(:leases)
+</span><span class='line'>#or
+</span><span class='line'>Property.joins("LEFT OUTER JOIN leases ON leases.property_id = properites.id")
+</span><span class='line'>
+</span><span class='line'># =&gt;
+</span><span class='line'>SELECT "properties".* FROM "properties" WHERE "properties"."deleted_at" IS NULL
+</span><span class='line'>SELECT "leases".* FROM "leases" WHERE "leases"."deleted_at" IS NULL AND "leases"."property_id" IN (...)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Eager Load loads all associations in a single query using a left outer join
+Includes with references will yield the same result</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Property.eager_load(:leases).pluck(:id)
+</span><span class='line'>
+</span><span class='line'>Property.includes(:leases).references(:leases).pluck(:id)
+</span><span class='line'>
+</span><span class='line'># =&gt;
+</span><span class='line'>SELECT "properties"."id" FROM "properties" LEFT OUTER JOIN "leases" ON "leases"."property_id" = "properties"."id" AND "leases"."deleted_at" IS NULL WHERE "properties"."deleted_at" IS NULL</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Properties can have one ore more (concurrent or otherwise) leases.  Some
+properties have no leases.</p>
+
+<p>Suppose that we have:
+* 100 properties
+* 60  leases</p>
+
+<p>where:</p>
+
+<ul>
+<li>50 properties have one lease</li>
+<li>40 properties have no lease</li>
+<li>10 properties have two leases</li>
+</ul>
+
+
+<p>so:</p>
+
+<ul>
+<li>Left table: Properties</li>
+<li>Right table: Leases</li>
+</ul>
+
+
+<p>INNER JOIN (joins): Show all properties with leases &ndash;> returns 60 properties
+(rows)</p>
+
+<p>LEFT OUTER JOIN (includes): Show all properties with their leases if they have
+any &ndash;> returns 100 properties (rows)</p>
+
+<p>RIGHT OUTER JOIN: Show all leases and the properties leased if any &ndash;> returns
+60 properties that have leases; there is no such thing as a lease with no
+property</p>
+
+<p>But what if I just want properties with leases and at the same time I want to
+eager load (includes) some or all fields of leases</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Property.joins(:leases).select("leases.*")
+</span><span class='line'># =&gt;
+</span><span class='line'>SELECT leases.* FROM "properties" INNER JOIN "leases" ON "leases"."property_id" = "properties"."id" AND "leases"."deleted_at" IS NULL WHERE "properties"."deleted_at" IS NULL</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Above, we select only properties with leases and we also fetch those leases (as
+opposed to loading all properties)</p>
+
+<p>To be continued&hellip;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wesam Al-Haddad</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2018-06-13T13:42:18-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>1:42 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alwesam.github.io/blog/2018/06/13/sql-queries-with-active-record/" data-via="vandevsam" data-counturl="http://alwesam.github.io/blog/2018/06/13/sql-queries-with-active-record/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/05/02/lesson-of-the-day-httponly-flag/" title="Previous Post: Lesson of the Day: Cookie Flags">&laquo; Lesson of the Day: Cookie Flags</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/06/13/sql-queries-with-active-record/">Notes on SQL Queries With Active Record</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/05/02/lesson-of-the-day-httponly-flag/">Lesson of the Day: Cookie Flags</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/04/24/moving-validations-away-from-models/">Moving Validations Away From Models</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/03/21/reseting-database-and-seeding-it-from-backup-data/">Reseting Database and Seeding It From Backup Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/02/26/webpacker-and-react-on-rails/">Integrating React Components in Rails Using Webpacker and React on Rails</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub</h1>
+  <!--<ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul> -->
+  
+  <a href="https://github.com/alwesam">@alwesam</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        //github.showRepos({
+        //    user: 'alwesam',
+        //    count: 0,
+        //    skip_forks: true,
+        //    target: '#gh_repos'
+        //});
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Wesam Al-Haddad -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
